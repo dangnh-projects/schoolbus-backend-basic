@@ -1,0 +1,22 @@
+.idea/
+**.pyc
+**/*.sqlite3
+.DS_Store
+
+ischoolbus/.vscode
+.env
+
+# code coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# database files mounted from docker container
+db
+release/production/db
+release/production/static
+
+static
+.vscode

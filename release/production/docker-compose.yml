@@ -1,0 +1,46 @@
+version: '3'
+services:
+    db:
+        image: mysql:5.7
+        command: --character-set-server=utf8 --collation-server=utf8_general_ci
+        restart: unless-stopped
+        container_name: ischoolbus_db
+        ports:
+            - "3307:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: ischoolbus
+        volumes:
+            - ./db:/var/lib/mysql
+    ischoolbus_backend:
+        image: humanonline-registry.octagoncorp.com/nhg-dev/ischoolbus-backend:0.0.4
+        restart: on-failure
+        expose:
+            - "8000"
+        command: >
+            sh -c "sleep 10 &&
+            crond &&
+            python ischoolbus/manage.py collectstatic --no-input --settings=ischoolbus.production &&
+            python ischoolbus/manage.py migrate --settings=ischoolbus.production &&
+            python ischoolbus/manage.py loaddata ischoolbus/users.json --settings=ischoolbus.production &&
+            ./entry.sh"
+        environment:
+            - EMAIL_USERNAME=${EMAIL_USERNAME}
+            - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+        links:
+            - db
+        depends_on:
+            - db
+        volumes:
+            - ./static:/www/ischoolbus/static/
+            - ./logs:/www/logs/
+    nginx:
+        image: nginx:latest
+        container_name: ng02
+        ports:
+          - "8200:8000"
+        volumes:
+          - ./config/nginx:/etc/nginx/conf.d
+          - ./static:/www/ischoolbus/static/
+        depends_on:
+          - ischoolbus_backend

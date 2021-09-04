@@ -1,0 +1,1 @@
+* * * * * python /www/ischoolbus/manage.py send_mail --settings=ischoolbus.production
